@@ -37,7 +37,7 @@ Custom Home Assistant integration for the **Dreame Furcatch FP10 Air Purifier** 
 
 1. In Home Assistant: **HACS → Integrations**
 2. Click **⋮** (top right) → **Custom repositories**
-3. Paste URL: `<placeholder>`
+3. Paste URL: `https://github.com/patrykwoj91/dreame-fp10-integration`
 4. Category: **Integration** → **Add**
 5. Search **"Dreame Furcatch FP10"** → **Download** → restart HA
 6. **Settings → Devices & Services → + Add Integration** → search "Dreame" → enter your Dreamehome app credentials
