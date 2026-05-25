@@ -15,15 +15,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities = []
     for p in data["purifiers"]:
         entities.extend([
-            DreamePowerSensor(data["coordinator"], p),
-            DreamePM25Sensor(data["coordinator"], p),
+            # Sensory section
             DreameAirQualitySensor(data["coordinator"], p),
+            DreamePM25Sensor(data["coordinator"], p),
+            DreameTVOCSensor(data["coordinator"], p),
             DreameTemperatureSensor(data["coordinator"], p),
             DreameHumiditySensor(data["coordinator"], p),
-            DreameTVOCSensor(data["coordinator"], p),
+            # Diagnostyka section
+            DreameFilterUsedSensor(data["coordinator"], p),
             DreameFilterLifeSensor(data["coordinator"], p),
             DreameFilterDaysSensor(data["coordinator"], p),
-            DreameFilterUsedSensor(data["coordinator"], p),
             DreameHairBoxLifeSensor(data["coordinator"], p),
             DreameHairBoxDaysSensor(data["coordinator"], p),
             DreameSelfCleaningStatusSensor(data["coordinator"], p),
@@ -48,35 +49,37 @@ class DreameBaseSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self): return self._purifier.available
 
-class DreamePowerSensor(DreameBaseSensor):
-    _attr_icon = "mdi:power"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "power", "Power")
+class DreameAirQualitySensor(DreameBaseSensor):
+    _attr_icon = "mdi:air-filter"
+    _attr_entity_category = EntityCategory.SENSORS
+    def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "air_quality", "Air Quality")
     @property
-    def native_value(self): return self._purifier.power_state
+    def native_value(self): return self._purifier.air_quality_name
 
 class DreamePM25Sensor(DreameBaseSensor):
     _attr_device_class = SensorDeviceClass.PM25
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
     _attr_icon = "mdi:molecule"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "pm25", "PM2.5")
     @property
     def native_value(self): return self._purifier.pm25
 
-class DreameAirQualitySensor(DreameBaseSensor):
-    _attr_icon = "mdi:air-filter"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "air_quality", "Air Quality")
+class DreameTVOCSensor(DreameBaseSensor):
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    _attr_icon = "mdi:molecule"
+    _attr_entity_category = EntityCategory.SENSORS
+    def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "tvoc", "TVOC")
     @property
-    def native_value(self): return self._purifier.air_quality_name
+    def native_value(self): return self._purifier.tvoc
 
 class DreameTemperatureSensor(DreameBaseSensor):
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "temperature", "Temperature")
     @property
     def native_value(self): return self._purifier.temperature
@@ -85,19 +88,17 @@ class DreameHumiditySensor(DreameBaseSensor):
     _attr_device_class = SensorDeviceClass.HUMIDITY
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "humidity", "Humidity")
     @property
     def native_value(self): return self._purifier.humidity
 
-class DreameTVOCSensor(DreameBaseSensor):
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
-    _attr_icon = "mdi:molecule"
+class DreameFilterUsedSensor(DreameBaseSensor):
+    _attr_icon = "mdi:alert-circle"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "tvoc", "TVOC")
+    def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "filter_used", "Filter Used")
     @property
-    def native_value(self): return self._purifier.tvoc
+    def native_value(self): return self._purifier.filter_used  # 0=not used, 1=used
 
 class DreameFilterLifeSensor(DreameBaseSensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -116,13 +117,6 @@ class DreameFilterDaysSensor(DreameBaseSensor):
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "filter_days", "Filter Days Remaining")
     @property
     def native_value(self): return self._purifier.filter_days_total
-
-class DreameFilterUsedSensor(DreameBaseSensor):
-    _attr_icon = "mdi:alert-circle"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "filter_used", "Filter Used")
-    @property
-    def native_value(self): return self._purifier.filter_used  # 0=not used, 1=used
 
 class DreameHairBoxLifeSensor(DreameBaseSensor):
     _attr_state_class = SensorStateClass.MEASUREMENT

@@ -48,26 +48,18 @@ class DreameBaseSelect(CoordinatorEntity, SelectEntity):
 
 class DreameAmbientLightSelect(DreameBaseSelect):
     _attr_icon = "mdi:lightbulb"
+    _attr_entity_category = EntityCategory.CONFIG
     def __init__(self, coordinator, purifier):
-        super().__init__(coordinator, purifier, "ambient_light", "Ambient Light", ["Off", "Dim", "Natural", "Bright", "Breathing"])
+        super().__init__(coordinator, purifier, "ambient_light", "Ambient Light", ["Off", "Dim", "Natural", "Bright"])
     @property
     def current_option(self) -> str:
-        if self._purifier.breathing_light == 1:
-            return "Breathing"
         return LIGHT_MODES.get(self._purifier.light_brightness, "Off")
     async def async_select_option(self, option: str) -> None:
         brightness_map = {"Off": LIGHT_OFF, "Dim": LIGHT_DIM, "Natural": LIGHT_NATURAL, "Bright": LIGHT_BRIGHT}
-        if option == "Breathing":
-            # Breathing mode: set brightness to "on" and enable breathing light
-            brightness = LIGHT_ON_LAST
-            breathing = 1
-        else:
-            # Regular modes: disable breathing light
-            brightness = brightness_map.get(option, LIGHT_OFF)
-            breathing = 0
-        
+        brightness = brightness_map.get(option, LIGHT_OFF)
+        # When changing ambient light, disable breathing light
         await self.hass.async_add_executor_job(self._purifier.set_light_brightness, brightness)
-        await self.hass.async_add_executor_job(self._purifier.set_breathing_light, breathing)
+        await self.hass.async_add_executor_job(self._purifier.set_breathing_light, False)
         await self.coordinator.async_request_refresh()
 
 class DreameTemperatureUnitSelect(DreameBaseSelect):
@@ -100,14 +92,34 @@ class DreameWeightUnitSelect(DreameBaseSelect):
 
 class DreameTimerSelect(DreameBaseSelect):
     _attr_icon = "mdi:timer"
-    _attr_entity_category = EntityCategory.CONFIG
     def __init__(self, coordinator, purifier):
-        timer_options = [str(i) for i in range(13)]
+        # Timer labels: Cancel (0), 1 hour, 2 hours, ..., 12 hours
+        timer_options = self._get_timer_labels()
         super().__init__(coordinator, purifier, "timer", "Timer", timer_options)
+    
+    @staticmethod
+    def _get_timer_labels() -> list:
+        """Generate timer labels with correct English grammar."""
+        labels = ["Cancel"]  # 0 - Cancel
+        for i in range(1, 13):
+            if i == 1:
+                labels.append(f"{i} hour")
+            else:
+                labels.append(f"{i} hours")
+        return labels
+    
     @property
     def current_option(self) -> str:
-        return str(self._purifier.timer)
+        timer_value = self._purifier.timer
+        labels = self._get_timer_labels()
+        return labels[timer_value] if timer_value < len(labels) else "Cancel"
+    
     async def async_select_option(self, option: str) -> None:
-        hours = int(option)
+        # Extract hour value from label (e.g., "5 hours" -> 5, "Cancel" -> 0)
+        if option == "Cancel":
+            hours = 0
+        else:
+            # Extract first number from string (e.g., "5 hours" -> "5")
+            hours = int(option.split()[0])
         await self.hass.async_add_executor_job(self._purifier.set_timer, hours)
         await self.coordinator.async_request_refresh()

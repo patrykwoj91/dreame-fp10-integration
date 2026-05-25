@@ -2,6 +2,7 @@
 import logging
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -39,6 +40,7 @@ class DreameBaseButton(CoordinatorEntity, ButtonEntity):
 
 class DreameStartSelfCleaningButton(DreameBaseButton):
     _attr_icon = "mdi:auto-fix"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     def __init__(self, coordinator, purifier):
         super().__init__(coordinator, purifier, "start_self_cleaning", "Start Self-Cleaning")
     async def async_press(self) -> None:
@@ -47,6 +49,7 @@ class DreameStartSelfCleaningButton(DreameBaseButton):
 
 class DreameConfirmSelfCleaningButton(DreameBaseButton):
     _attr_icon = "mdi:check-circle"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     def __init__(self, coordinator, purifier):
         super().__init__(coordinator, purifier, "confirm_self_cleaning", "Confirm Self-Cleaning Finished")
     async def async_press(self) -> None:
