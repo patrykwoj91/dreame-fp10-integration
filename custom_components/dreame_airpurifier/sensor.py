@@ -51,7 +51,6 @@ class DreameBaseSensor(CoordinatorEntity, SensorEntity):
 
 class DreameAirQualitySensor(DreameBaseSensor):
     _attr_icon = "mdi:air-filter"
-    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "air_quality", "Air Quality")
     @property
     def native_value(self): return self._purifier.air_quality_name
@@ -61,7 +60,6 @@ class DreamePM25Sensor(DreameBaseSensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
     _attr_icon = "mdi:molecule"
-    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "pm25", "PM2.5")
     @property
     def native_value(self): return self._purifier.pm25
@@ -70,7 +68,6 @@ class DreameTVOCSensor(DreameBaseSensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
     _attr_icon = "mdi:molecule"
-    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "tvoc", "TVOC")
     @property
     def native_value(self): return self._purifier.tvoc
@@ -79,7 +76,6 @@ class DreameTemperatureSensor(DreameBaseSensor):
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
-    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "temperature", "Temperature")
     @property
     def native_value(self): return self._purifier.temperature
@@ -88,7 +84,6 @@ class DreameHumiditySensor(DreameBaseSensor):
     _attr_device_class = SensorDeviceClass.HUMIDITY
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_entity_category = EntityCategory.SENSORS
     def __init__(self, coordinator, purifier): super().__init__(coordinator, purifier, "humidity", "Humidity")
     @property
     def native_value(self): return self._purifier.humidity
