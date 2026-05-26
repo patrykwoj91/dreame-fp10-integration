@@ -10,7 +10,13 @@ from .api import DreameAirPurifier
 
 _LOGGER = logging.getLogger(__name__)
 
-# Button entities are set up in setup_entities.py to control ordering with other entities
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+    """Set up button entities."""
+    data = hass.data["dreame_airpurifier"][entry.entry_id]
+    entities = [DreameStartSelfCleaningButton(data["coordinator"], p) for p in data["purifiers"]]
+    entities.extend([DreameConfirmSelfCleaningButton(data["coordinator"], p) for p in data["purifiers"]])
+    async_add_entities(entities)
 
 class DreameBaseButton(CoordinatorEntity, ButtonEntity):
     _attr_has_entity_name = True

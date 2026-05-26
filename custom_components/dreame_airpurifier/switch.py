@@ -11,7 +11,18 @@ from .api import DreameAirPurifier
 
 _LOGGER = logging.getLogger(__name__)
 
-# Switch entities are set up in setup_entities.py to control ordering with other entities
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+    """Set up switch entities."""
+    data = hass.data["dreame_airpurifier"][entry.entry_id]
+    entities = []
+    for p in data["purifiers"]:
+        entities.extend([
+            DreameBuzzerSwitch(data["coordinator"], p),
+            DreameChildLockSwitch(data["coordinator"], p),
+            DreameBreathingLightSwitch(data["coordinator"], p),
+        ])
+    async_add_entities(entities)
 
 class DreameBaseSwitch(CoordinatorEntity, SwitchEntity):
     _attr_has_entity_name = True

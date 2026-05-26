@@ -10,8 +10,27 @@ from .api import DreameAirPurifier
 
 _LOGGER = logging.getLogger(__name__)
 
-# Import central setup which handles all entities in proper order
-from .setup_entities import async_setup_entry
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+    """Set up sensor entities."""
+    data = hass.data["dreame_airpurifier"][entry.entry_id]
+    entities = []
+    for p in data["purifiers"]:
+        entities.extend([
+            # Brak kategorii (CONTROL)
+            DreameAirQualitySensor(data["coordinator"], p),
+            DreamePM25Sensor(data["coordinator"], p),
+            DreameTVOCSensor(data["coordinator"], p),
+            DreameTemperatureSensor(data["coordinator"], p),
+            DreameHumiditySensor(data["coordinator"], p),
+            # DIAGNOSTIC
+            DreameFilterUsedSensor(data["coordinator"], p),
+            DreameFilterLifeSensor(data["coordinator"], p),
+            DreameFilterDaysSensor(data["coordinator"], p),
+            DreameHairBoxLifeSensor(data["coordinator"], p),
+            DreameHairBoxDaysSensor(data["coordinator"], p),
+            DreameSelfCleaningStatusSensor(data["coordinator"], p),
+        ])
+    async_add_entities(entities)
 
 class DreameBaseSensor(CoordinatorEntity, SensorEntity):
     _attr_has_entity_name = True
