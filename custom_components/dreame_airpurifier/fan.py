@@ -12,12 +12,7 @@ from .api import DreameAirPurifier, MODE_NAME_TO_VALUE, MODE_CUSTOM
 
 _LOGGER = logging.getLogger(__name__)
 
-
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
-    data = hass.data["dreame_airpurifier"][entry.entry_id]
-    entities = [DreameAirPurifierFan(data["coordinator"], p) for p in data["purifiers"]]
-    async_add_entities(entities)
-
+# Fan entity is set up in setup_entities.py to control ordering with other entities
 
 class DreameAirPurifierFan(CoordinatorEntity, FanEntity):
     """Dreame Air Purifier FP10 fan entity."""

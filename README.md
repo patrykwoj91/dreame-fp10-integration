@@ -11,7 +11,6 @@ Custom Home Assistant integration for the **Dreame Furcatch FP10 Air Purifier** 
     - Setting fan speed automatically switches to Custom mode
 
 ### Sensors
-- **Power** = shows main state of device (standby/running)
 - **PM2.5** — Real-time particulate matter reading (µg/m³)
 - **AQ** — Numeric (1-4) air quality index from the device, where 1 is excellent, and 4 is poor
 - **Temperature** = Temp sensor (C/F)
@@ -23,7 +22,8 @@ Custom Home Assistant integration for the **Dreame Furcatch FP10 Air Purifier** 
 - **Hair Collection Box Remaining Days** — Days remaining until box cleaning
 
 ### Other entities
-- **Ambient Light** — Sets ambient light brightness and breathing mode
+- **Ambient Light** — Sets ambient light brightness
+- **Breathing Light** - sets ambient light to breathing mode
 - **Buzzer** — Toggle button sounds
 - **Child Lock** — Toggle the child lock
 - **Timer** - sets timer to 0-12 hours

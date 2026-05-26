@@ -15,17 +15,7 @@ from .api import (
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
-    data = hass.data["dreame_airpurifier"][entry.entry_id]
-    entities = []
-    for p in data["purifiers"]:
-        entities.extend([
-            DreameAmbientLightSelect(data["coordinator"], p),
-            DreameTemperatureUnitSelect(data["coordinator"], p),
-            DreameWeightUnitSelect(data["coordinator"], p),
-            DreameTimerSelect(data["coordinator"], p),
-        ])
-    async_add_entities(entities)
+# Select entities are set up in setup_entities.py to control ordering with other entities
 
 class DreameBaseSelect(CoordinatorEntity, SelectEntity):
     _attr_has_entity_name = True
