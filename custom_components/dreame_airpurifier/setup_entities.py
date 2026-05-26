@@ -4,37 +4,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-# Import all entity classes
-from .fan import DreameAirPurifierFan
-from .sensor import (
-    DreameAirQualitySensor,
-    DreamePM25Sensor,
-    DreameTVOCSensor,
-    DreameTemperatureSensor,
-    DreameHumiditySensor,
-    DreameFilterUsedSensor,
-    DreameFilterLifeSensor,
-    DreameFilterDaysSensor,
-    DreameHairBoxLifeSensor,
-    DreameHairBoxDaysSensor,
-    DreameSelfCleaningStatusSensor,
-)
-from .select import (
-    DreameTimerSelect,
-    DreameAmbientLightSelect,
-    DreameTemperatureUnitSelect,
-    DreameWeightUnitSelect,
-)
-from .switch import (
-    DreameBuzzerSwitch,
-    DreameChildLockSwitch,
-    DreameBreathingLightSwitch,
-)
-from .button import (
-    DreameStartSelfCleaningButton,
-    DreameConfirmSelfCleaningButton,
-)
-
 _LOGGER = logging.getLogger(__name__)
 
 # Entity platform for Home Assistant setup
@@ -43,6 +12,37 @@ PLATFORM_DOMAIN = "sensor"
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     """Set up all entities in correct order."""
+    # Import here to avoid circular imports
+    from .fan import DreameAirPurifierFan
+    from .sensor import (
+        DreameAirQualitySensor,
+        DreamePM25Sensor,
+        DreameTVOCSensor,
+        DreameTemperatureSensor,
+        DreameHumiditySensor,
+        DreameFilterUsedSensor,
+        DreameFilterLifeSensor,
+        DreameFilterDaysSensor,
+        DreameHairBoxLifeSensor,
+        DreameHairBoxDaysSensor,
+        DreameSelfCleaningStatusSensor,
+    )
+    from .select import (
+        DreameTimerSelect,
+        DreameAmbientLightSelect,
+        DreameTemperatureUnitSelect,
+        DreameWeightUnitSelect,
+    )
+    from .switch import (
+        DreameBuzzerSwitch,
+        DreameChildLockSwitch,
+        DreameBreathingLightSwitch,
+    )
+    from .button import (
+        DreameStartSelfCleaningButton,
+        DreameConfirmSelfCleaningButton,
+    )
+    
     data = hass.data["dreame_airpurifier"][entry.entry_id]
     entities = []
     
