@@ -126,3 +126,7 @@ Issues, feature requests, and PRs welcome.
 ## License
 
 MIT License
+
+## Credits
+
+[CodyJon](https://github.com/CodyJon) - `https://github.com/CodyJon/dreame-ap10-integration` - used as a base for AI agent
