@@ -59,7 +59,14 @@ Custom Home Assistant integration for the **Dreame Furcatch FP10 Air Purifier** 
 ## Important Notes
 
 ### Cloud Polling
-This integration communicates via the Dreame Cloud API (same as the Dreamehome app). It polls for state updates every x seconds (configurable, default is 30). Commands are sent through the cloud — there is no local API available for this device.
+This integration communicates via the Dreame Cloud API (same as the Dreamehome app). It polls for state updates every **15 seconds by default** (configurable). Commands are sent through the cloud — there is no local API available for this device.
+
+**Configuring Polling Interval:**
+- After adding the integration, go to **Settings → Devices & Services**
+- Find your **Dreame Air Purifier** device
+- Click the **⚙️ (Options)** button
+- Adjust **Polling Interval** (5-300 seconds)
+- Click **Save**
 
 ## Verified Property Map
 

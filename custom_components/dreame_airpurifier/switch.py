@@ -49,10 +49,14 @@ class DreameBuzzerSwitch(DreameBaseSwitch):
     @property
     def is_on(self): return bool(self._purifier.buzzer)
     async def async_turn_on(self, **kwargs): 
-        await self.hass.async_add_executor_job(self._purifier.set_buzzer, True)
+        result = await self.hass.async_add_executor_job(self._purifier.set_buzzer, True)
+        if not result:
+            _LOGGER.error("Failed to turn on buzzer")
         await self.coordinator.async_request_refresh()
     async def async_turn_off(self, **kwargs): 
-        await self.hass.async_add_executor_job(self._purifier.set_buzzer, False)
+        result = await self.hass.async_add_executor_job(self._purifier.set_buzzer, False)
+        if not result:
+            _LOGGER.error("Failed to turn off buzzer")
         await self.coordinator.async_request_refresh()
 
 class DreameChildLockSwitch(DreameBaseSwitch):
@@ -62,10 +66,14 @@ class DreameChildLockSwitch(DreameBaseSwitch):
     @property
     def is_on(self): return bool(self._purifier.child_lock)
     async def async_turn_on(self, **kwargs): 
-        await self.hass.async_add_executor_job(self._purifier.set_child_lock, True)
+        result = await self.hass.async_add_executor_job(self._purifier.set_child_lock, True)
+        if not result:
+            _LOGGER.error("Failed to turn on child lock")
         await self.coordinator.async_request_refresh()
     async def async_turn_off(self, **kwargs): 
-        await self.hass.async_add_executor_job(self._purifier.set_child_lock, False)
+        result = await self.hass.async_add_executor_job(self._purifier.set_child_lock, False)
+        if not result:
+            _LOGGER.error("Failed to turn off child lock")
         await self.coordinator.async_request_refresh()
 
 class DreameBreathingLightSwitch(DreameBaseSwitch):
@@ -75,8 +83,12 @@ class DreameBreathingLightSwitch(DreameBaseSwitch):
     @property
     def is_on(self): return bool(self._purifier.breathing_light)
     async def async_turn_on(self, **kwargs): 
-        await self.hass.async_add_executor_job(self._purifier.set_breathing_light, True)
+        result = await self.hass.async_add_executor_job(self._purifier.set_breathing_light, True)
+        if not result:
+            _LOGGER.error("Failed to turn on breathing light")
         await self.coordinator.async_request_refresh()
     async def async_turn_off(self, **kwargs): 
-        await self.hass.async_add_executor_job(self._purifier.set_breathing_light, False)
+        result = await self.hass.async_add_executor_job(self._purifier.set_breathing_light, False)
+        if not result:
+            _LOGGER.error("Failed to turn off breathing light")
         await self.coordinator.async_request_refresh()

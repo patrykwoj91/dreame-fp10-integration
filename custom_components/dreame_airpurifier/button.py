@@ -42,7 +42,9 @@ class DreameStartSelfCleaningButton(DreameBaseButton):
     def __init__(self, coordinator, purifier):
         super().__init__(coordinator, purifier, "start_self_cleaning", "Start Self-Cleaning")
     async def async_press(self) -> None:
-        await self.hass.async_add_executor_job(self._purifier.start_self_cleaning)
+        result = await self.hass.async_add_executor_job(self._purifier.start_self_cleaning)
+        if not result:
+            _LOGGER.error("Failed to start self-cleaning")
         await self.coordinator.async_request_refresh()
 
 class DreameConfirmSelfCleaningButton(DreameBaseButton):
@@ -51,5 +53,7 @@ class DreameConfirmSelfCleaningButton(DreameBaseButton):
     def __init__(self, coordinator, purifier):
         super().__init__(coordinator, purifier, "confirm_self_cleaning", "Confirm Self-Cleaning Finished")
     async def async_press(self) -> None:
-        await self.hass.async_add_executor_job(self._purifier.confirm_self_cleaning_finished)
+        result = await self.hass.async_add_executor_job(self._purifier.confirm_self_cleaning_finished)
+        if not result:
+            _LOGGER.error("Failed to confirm self-cleaning finished")
         await self.coordinator.async_request_refresh()

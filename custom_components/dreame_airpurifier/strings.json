@@ -15,5 +15,16 @@
       "invalid_auth": "Invalid credentials",
       "no_devices": "No air purifiers found on this account"
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Polling Options",
+        "description": "Configure polling interval for state updates",
+        "data": {
+          "scan_interval": "Polling Interval (seconds, 5-300)"
+        }
+      }
+    }
   }
 }
