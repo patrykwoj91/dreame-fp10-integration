@@ -212,18 +212,35 @@ class DreameCloudAPI:
         payload = {"did": str(did), "id": 1, "data": {"did": str(did), "id": 1, "method": method, "params": params}}
         try:
             r = self._session.post(url, headers=self._auth_headers(), json=payload, timeout=10)
-            if r.status_code == 200:
-                result = r.json()
-                if result.get("code") == 0:
+            # Accept any 2xx status as success
+            if 200 <= r.status_code < 300:
+                try:
+                    result = r.json()
+                except Exception:
+                    result = None
+                if result and result.get("code") == 0:
                     if result.get("data") and "result" in result["data"]:
                         return result["data"]["result"]
                     if result.get("success"):
                         return {"code": 0}
+                # If JSON didn't indicate success, fall through to logging below
             elif r.status_code == 401:
                 if self.login():
                     return self.send_command(did, method, params, host)
+            # Non-2xx responses should be logged with body for diagnostics
+            if not (200 <= r.status_code < 300):
+                body = None
+                try:
+                    body = r.text
+                except Exception:
+                    body = "<unable to read response body>"
+                _LOGGER.error("Dreame API returned HTTP %s for method %s (did=%s): %s", r.status_code, method, did, body)
         except Exception as ex:
-            _LOGGER.error("Command failed: %s", ex)
+            # Distinguish timeouts from other request failures for clearer logs
+            if isinstance(ex, requests.exceptions.Timeout):
+                _LOGGER.exception("Dreame API timeout calling %s for device %s", method, did)
+            else:
+                _LOGGER.exception("Dreame API request failed calling %s for device %s", method, did)
         return None
 
     def get_properties(self, did: str, properties: list, host: str = None) -> dict:
