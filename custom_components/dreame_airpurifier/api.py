@@ -48,15 +48,16 @@ PROP_BUZZER = {"siid": 6, "piid": 17}       # int: 0=off, 1=on
 # siid 7: Filter Self-Cleaning
 PROP_SELF_CLEANING_STATUS = {"siid": 7, "piid": 1}  # int: 0=off, 1=in progress, 2=finished
 
-# Poll batches (small to avoid timeout)
+# Poll batches: all properties in single request to minimize timeout risk
+# To revert to multiple batches, split the list (e.g., first batch up to PROP_FILTER_USED, second from PROP_HAIR_BOX_LIFE)
 POLL_BATCHES = [
-    [PROP_POWER, PROP_MODE, PROP_FAN_SPEED],
-    [PROP_HUMIDITY, PROP_TEMPERATURE, PROP_AQ_LEVEL, PROP_PM25, PROP_TVOC],
-    [PROP_FILTER_LIFE, PROP_FILTER_DAYS, PROP_FILTER_USED],
-    [PROP_HAIR_BOX_LIFE, PROP_HAIR_BOX_DAYS],
-    [PROP_TIMER, PROP_CHILD_LOCK, PROP_BREATHING_LIGHT, PROP_BUZZER],
-    [PROP_LIGHT_BRIGHTNESS, PROP_TEMP_UNIT, PROP_WEIGHT_UNIT],
-    [PROP_SELF_CLEANING_STATUS],
+    [PROP_POWER, PROP_MODE, PROP_FAN_SPEED,
+     PROP_HUMIDITY, PROP_TEMPERATURE, PROP_AQ_LEVEL, PROP_PM25, PROP_TVOC,
+     PROP_FILTER_LIFE, PROP_FILTER_DAYS, PROP_FILTER_USED,
+     PROP_HAIR_BOX_LIFE, PROP_HAIR_BOX_DAYS,
+     PROP_TIMER, PROP_CHILD_LOCK, PROP_BREATHING_LIGHT, PROP_BUZZER,
+     PROP_LIGHT_BRIGHTNESS, PROP_TEMP_UNIT, PROP_WEIGHT_UNIT,
+     PROP_SELF_CLEANING_STATUS],
 ]
 
 # Mode mapping (VERIFIED)
@@ -210,36 +211,57 @@ class DreameCloudAPI:
         host_prefix = f"-{host.split('.')[0]}" if host else ""
         url = f"{self.api_url}/dreame-iot-com{host_prefix}/device/sendCommand"
         payload = {"did": str(did), "id": 1, "data": {"did": str(did), "id": 1, "method": method, "params": params}}
-        try:
-            r = self._session.post(url, headers=self._auth_headers(), json=payload, timeout=10)
-            # Accept any 2xx status as success
-            if 200 <= r.status_code < 300:
-                try:
-                    result = r.json()
-                except Exception:
-                    result = None
-                if result and result.get("code") == 0:
-                    if result.get("data") and "result" in result["data"]:
-                        return result["data"]["result"]
-                    if result.get("success"):
-                        return {"code": 0}
-                # If JSON didn't indicate success, fall through to logging below
-            elif r.status_code == 401:
-                if self.login():
-                    return self.send_command(did, method, params, host)
-            # Non-2xx responses should be logged with body for diagnostics
-            if not (200 <= r.status_code < 300):
-                body = None
-                try:
-                    body = r.text
-                except Exception:
-                    body = "<unable to read response body>"
-                _LOGGER.error("Dreame API returned HTTP %s for method %s (did=%s): %s", r.status_code, method, did, body)
-        except Exception as ex:
-            # Distinguish timeouts from other request failures for clearer logs
-            if isinstance(ex, requests.exceptions.Timeout):
-                _LOGGER.exception("Dreame API timeout calling %s for device %s", method, did)
-            else:
+        
+        # Retry logic with exponential backoff for transient failures
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Timeout: 8s per request (with 1s+2s+4s backoff for retries = max ~15s total)
+                # Polling interval is 15s, so each batch has buffer to complete
+                r = self._session.post(url, headers=self._auth_headers(), json=payload, timeout=8)
+                # Accept any 2xx status as success
+                if 200 <= r.status_code < 300:
+                    try:
+                        result = r.json()
+                    except Exception:
+                        result = None
+                    if result and result.get("code") == 0:
+                        if result.get("data") and "result" in result["data"]:
+                            return result["data"]["result"]
+                        if result.get("success"):
+                            return {"code": 0}
+                    # If JSON didn't indicate success, fall through to logging below
+                elif r.status_code == 401:
+                    if self.login():
+                        return self.send_command(did, method, params, host)
+                # Non-2xx responses should be logged with body for diagnostics
+                if not (200 <= r.status_code < 300):
+                    body = None
+                    try:
+                        body = r.text
+                    except Exception:
+                        body = "<unable to read response body>"
+                    _LOGGER.error("Dreame API returned HTTP %s for method %s (did=%s): %s", r.status_code, method, did, body)
+                # Success (2xx) or unrecoverable error - don't retry
+                return None
+            except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError) as ex:
+                # Transient connection errors: retry with backoff
+                if attempt < max_retries - 1:
+                    backoff = 2 ** attempt  # 1s, 2s, 4s backoff between retries
+                    _LOGGER.warning("Dreame API connection error on attempt %d/%d (will retry in %ds): %s", attempt + 1, max_retries, backoff, type(ex).__name__)
+                    time.sleep(backoff)
+                else:
+                    _LOGGER.exception("Dreame API connection failed after %d retries calling %s for device %s", max_retries, method, did)
+            except requests.exceptions.Timeout as ex:
+                # Timeouts: retry with backoff
+                if attempt < max_retries - 1:
+                    backoff = 2 ** attempt
+                    _LOGGER.warning("Dreame API timeout on attempt %d/%d (will retry in %ds)", attempt + 1, max_retries, backoff)
+                    time.sleep(backoff)
+                else:
+                    _LOGGER.exception("Dreame API timeout after %d retries calling %s for device %s", max_retries, method, did)
+            except Exception as ex:
+                # Other exceptions: log and don't retry
                 _LOGGER.exception("Dreame API request failed calling %s for device %s", method, did)
         return None
 
