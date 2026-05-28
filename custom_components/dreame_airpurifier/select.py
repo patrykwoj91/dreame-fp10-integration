@@ -59,7 +59,10 @@ class DreameAmbientLightSelect(DreameBaseSelect):
     async def async_select_option(self, option: str) -> None:
         brightness_map = {"Off": LIGHT_OFF, "Dim": LIGHT_DIM, "Natural": LIGHT_NATURAL, "Bright": LIGHT_BRIGHT}
         brightness = brightness_map.get(option, LIGHT_OFF)
+        # Optimistic update: show brightness change immediately
+        self._purifier._light_brightness = brightness
         # When changing ambient light, disable breathing light
+        self._purifier._breathing_light = 0
         result = await self.hass.async_add_executor_job(self._purifier.set_light_brightness, brightness)
         if not result:
             _LOGGER.error("Failed to set ambient light to %s", option)
@@ -79,6 +82,8 @@ class DreameTemperatureUnitSelect(DreameBaseSelect):
     async def async_select_option(self, option: str) -> None:
         unit_map = {"C": TEMP_UNIT_CELSIUS, "F": TEMP_UNIT_FAHRENHEIT}
         unit = unit_map.get(option, TEMP_UNIT_CELSIUS)
+        # Optimistic update: show unit change immediately
+        self._purifier._temp_unit = unit
         result = await self.hass.async_add_executor_job(self._purifier.set_temp_unit, unit)
         if not result:
             _LOGGER.error("Failed to set temperature unit to %s", option)
@@ -95,6 +100,8 @@ class DreameWeightUnitSelect(DreameBaseSelect):
     async def async_select_option(self, option: str) -> None:
         unit_map = {"kg": WEIGHT_UNIT_KG, "lb": WEIGHT_UNIT_LB}
         unit = unit_map.get(option, WEIGHT_UNIT_KG)
+        # Optimistic update: show unit change immediately
+        self._purifier._weight_unit = unit
         result = await self.hass.async_add_executor_job(self._purifier.set_weight_unit, unit)
         if not result:
             _LOGGER.error("Failed to set weight unit to %s", option)
@@ -131,6 +138,8 @@ class DreameTimerSelect(DreameBaseSelect):
         else:
             # Extract first number from string (e.g., "5 hours" -> "5")
             hours = int(option.split()[0])
+        # Optimistic update: show timer change immediately
+        self._purifier._timer = hours
         result = await self.hass.async_add_executor_job(self._purifier.set_timer, hours)
         if not result:
             _LOGGER.error("Failed to set timer to %s", option)

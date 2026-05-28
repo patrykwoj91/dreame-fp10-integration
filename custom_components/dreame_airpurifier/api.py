@@ -448,7 +448,12 @@ class DreameAirPurifier:
         self._weight_unit = all_values.get((6, 11), WEIGHT_UNIT_KG)
         
         # Self-cleaning
-        self._self_cleaning_status = all_values.get((7, 1), 0)
+        raw_self_clean = all_values.get((7, 1), 0)
+        try:
+            self._self_cleaning_status = int(raw_self_clean or 0)
+        except Exception:
+            _LOGGER.exception("Failed to parse self_cleaning_status value: %s", raw_self_clean)
+            self._self_cleaning_status = 0
         
         return True
 

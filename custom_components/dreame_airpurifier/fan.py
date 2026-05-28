@@ -75,6 +75,8 @@ class DreameAirPurifierFan(CoordinatorEntity, FanEntity):
         }
 
     async def async_turn_on(self, percentage=None, preset_mode=None, **kwargs) -> None:
+        # Optimistic update: show immediately in UI
+        self._purifier._power = 1
         result = await self.hass.async_add_executor_job(self._purifier.turn_on)
         if not result:
             _LOGGER.error("Failed to turn on purifier")
@@ -85,6 +87,8 @@ class DreameAirPurifierFan(CoordinatorEntity, FanEntity):
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
+        # Optimistic update: show immediately in UI
+        self._purifier._power = 2  # 2 = standby
         result = await self.hass.async_add_executor_job(self._purifier.turn_off)
         if not result:
             _LOGGER.error("Failed to turn off purifier")
@@ -98,9 +102,13 @@ class DreameAirPurifierFan(CoordinatorEntity, FanEntity):
         level = max(1, min(10, round(percentage / 10)))
         # Switch to Custom mode if not already
         if self._purifier.mode_value != MODE_CUSTOM:
+            # Optimistic update: show mode change immediately
+            self._purifier._mode = MODE_CUSTOM
             result = await self.hass.async_add_executor_job(self._purifier.set_mode, MODE_CUSTOM)
             if not result:
                 _LOGGER.error("Failed to set fan mode to Custom")
+        # Optimistic update: show speed change immediately
+        self._purifier._fan_speed = level
         result = await self.hass.async_add_executor_job(self._purifier.set_fan_speed, level)
         if not result:
             _LOGGER.error("Failed to set fan speed to %d", level)
@@ -109,6 +117,8 @@ class DreameAirPurifierFan(CoordinatorEntity, FanEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         mode_value = MODE_NAME_TO_VALUE.get(preset_mode)
         if mode_value is not None:
+            # Optimistic update: show mode change immediately
+            self._purifier._mode = mode_value
             result = await self.hass.async_add_executor_job(self._purifier.set_mode, mode_value)
             if not result:
                 _LOGGER.error("Failed to set fan preset mode to %s", preset_mode)
